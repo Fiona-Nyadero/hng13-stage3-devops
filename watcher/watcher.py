@@ -51,14 +51,14 @@ def analyze_error_rate():
 
     error_count = sum(1 for entry in log_queue if 500 <= int(entry.get('upstream_status', '0')) < 600)
     error_rate = error_count / WINDOW_SIZE
-    
+
     if error_rate > ERROR_RATE_THRESHOLD:
         if check_cooldown():
             print(f"Error rate alert suppressed due to cooldown.")
             return
 
         pool_name = log_queue[-1].get('pool', 'unknown').upper()
-        
+
         post_to_slack(
             title=":fire: HIGH ERROR RATE DETECTED",
             message=f"**Error Rate Threshold Breach**\n"
@@ -84,7 +84,7 @@ def check_failover(log_entry):
 
             old_pool_upper = current_pool.upper()
             new_pool_upper = new_pool.upper()
-            
+
             # Post Alert
             post_to_slack(
                 title=f":warning: POOL FAILOVER DETECTED: {old_pool_upper} -> {new_pool_upper}",
@@ -98,40 +98,39 @@ def check_failover(log_entry):
             last_alert_time = time.time() # Start cooldown after failover alert
 
 def tail_logs():
-    """Tails the log file, parsing lines and running analysis."""
+    """Tails the log file, robustly handling seek and file state."""
     print(f"Tailing log file: {LOG_FILE_PATH}")
-    try:
-        # Start reading from the end of the file
-        with open(LOG_FILE_PATH, 'r') as f:
-            f.seek(0, 2) # Go to the end of the file
 
-            while True:
-                line = f.readline()
-                if not line:
-                    time.sleep(0.1) # Wait for new line
-                    continue
-                
+    while True:
+        try:
+            # Open the file in read mode ('r')
+            with open(LOG_FILE_PATH, 'r') as f:
+
+                # Try to seek to the end for clean startup, but ignore failure (the fix!)
                 try:
-                    # Nginx escape=json means we get a JSON string, not a dict
-                    log_entry = json.loads(line)
-                    log_queue.append(log_entry)
+                    f.seek(0, io.SEEK_END)
+                except io.UnsupportedOperation:
+                    print("Note: Log stream is unseekable, starting read from current position.", file=sys.stderr)
+                    # If unseekable, we just start reading from wherever the pointer is (usually the beginning)
+                    pass
 
-                    # Only check for failover if the status is successful (2xx)
-                    # A failover is only confirmed when the backup serves the request successfully.
-                    if 200 <= int(log_entry.get('status', '0')) < 300:
-                        check_failover(log_entry)
-                    
-                    analyze_error_rate()
+                # Continuous read loop
+                while True:
+                    line = f.readline()
+                    if not line:
+                        time.sleep(0.1) # Wait for new line
+                        continue
 
-                except json.JSONDecodeError:
-                    print(f"Skipping malformed log line: {line.strip()}")
-                except Exception as e:
-                    print(f"An error occurred during log processing: {e}")
+                    process_log_line(line)
 
-    except FileNotFoundError:
-        print(f"Log file not found at {LOG_FILE_PATH}. Retrying in 5 seconds.")
-        time.sleep(5)
-        tail_logs() # Recursive retry
+        except FileNotFoundError:
+            # If Nginx hasn't created the file yet, wait and retry
+            print(f"Log file not found at {LOG_FILE_PATH}. Retrying in 5 seconds.")
+            time.sleep(5)
+        except Exception as e:
+            # Catch unexpected errors during file operation (like disk errors)
+            print(f"Fatal file error: {e}. Retrying in 10 seconds.")
+            time.sleep(10)
 
 if __name__ == "__main__":
     tail_logs()
