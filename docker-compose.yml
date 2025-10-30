@@ -14,7 +14,7 @@ services:
     ports:
       - "8081:${PORT}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/login"]
       interval: 5s
       timeout: 3s
       retries: 3
@@ -29,7 +29,7 @@ services:
     ports:
       - "8082:${PORT}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/login"]
       interval: 5s
       timeout: 3s
       retries: 3
