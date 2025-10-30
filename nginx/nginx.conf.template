@@ -1,0 +1,43 @@
+log_format json_log escape=json '{'
+    '"time": "$time_iso8601",'
+    '"remote_addr": "$remote_addr",'
+    '"request_method": "$request_method",'
+    '"request_uri": "$request_uri",'
+    '"request_time": "$request_time",'
+    '"status": "$status",'
+    '"upstream_addr": "$upstream_addr",'
+    '"upstream_status": "$upstream_status",'
+    '"upstream_response_time": "$upstream_response_time",'
+    '"pool": "$upstream_http_x_app_pool",'       <-- Captures X-App-Pool
+    '"release": "$upstream_http_x_release_id"'    <-- Captures X-Release-Id
+'}';
+
+upstream node_backend {
+    server app_blue:${PORT} max_fails=1 fail_timeout=1s $UPSTREAM_BLUE_ROLE;
+    server app_green:${PORT} max_fails=1 fail_timeout=1s $UPSTREAM_GREEN_ROLE;
+    keepalive 16;
+}
+
+server {
+    listen 80;
+    # --- Aggressive Failure Detection ---
+    proxy_connect_timeout 500ms;
+    proxy_send_timeout 1000ms;
+    proxy_read_timeout 1000ms;
+
+    # --- Critical Retry Policy
+    proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
+
+    proxy_next_upstream_tries 2;
+
+    location / {
+        proxy_pass http://node_backend;
+
+        access_log /var/log/nginx/access.log json_log;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+}

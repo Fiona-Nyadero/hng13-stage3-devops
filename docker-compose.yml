@@ -1,0 +1,66 @@
+version: '3.8'
+
+volumes:
+  nginx_logs:
+
+services:
+  app_blue:
+    image: ${BLUE_IMAGE}
+    container_name: app_blue
+    environment:
+      RELEASE_ID: ${RELEASE_ID_BLUE}
+      PORT: ${PORT}
+      APP_POOL: "blue"
+    ports:
+      - "8081:${PORT}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  app_green:
+    image: ${GREEN_IMAGE}
+    container_name: app_green
+    environment:
+      RELEASE_ID: ${RELEASE_ID_GREEN}
+      PORT: ${PORT}
+      APP_POOL: "green"
+    ports:
+      - "8082:${PORT}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx_proxy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template:ro
+      - ./init-nginx.sh:/docker-entrypoint.d/init-nginx.sh:ro
+      - nginx_logs:/var/log/nginx
+    environment:
+      ACTIVE_POOL: ${ACTIVE_POOL}
+      PORT: ${PORT}
+    depends_on:
+      - app_blue
+      - app_green
+    entrypoint: /docker-entrypoint.d/init-nginx.sh
+  
+  alert_watcher:
+    build: ./watcher
+    container_name: alert_watcher
+    environment:
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
+      ACTIVE_POOL: ${ACTIVE_POOL}
+      ERROR_RATE_THRESHOLD: ${ERROR_RATE_THRESHOLD}
+      WINDOW_SIZE: ${WINDOW_SIZE}
+      ALERT_COOLDOWN_SEC: ${ALERT_COOLDOWN_SEC}
+    volumes:
+      - nginx_logs:/app/logs:ro
+    depends_on:
+      - nginx
