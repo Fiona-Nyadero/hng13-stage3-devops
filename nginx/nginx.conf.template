@@ -33,6 +33,9 @@ server {
     location / {
         proxy_pass http://node_backend;
 
+        proxy_set_header X-App-Pool $ACTIVE_POOL;
+        proxy_set_header X-Release-Id $RELEASE_ID;
+
         access_log /var/log/nginx/access.log json;
         
         proxy_set_header Host $host;
