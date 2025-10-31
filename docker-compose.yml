@@ -61,6 +61,6 @@ services:
       WINDOW_SIZE: ${WINDOW_SIZE}
       ALERT_COOLDOWN_SEC: ${ALERT_COOLDOWN_SEC}
     volumes:
-      - nginx_logs:/var/log/nginx:ro
+      - nginx_logs:/app/logs:ro
     depends_on:
       - nginx
