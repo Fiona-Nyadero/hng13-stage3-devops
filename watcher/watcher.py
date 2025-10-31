@@ -104,30 +104,34 @@ def process_log_line(line):
     check_failover(log_entry)
 
 def tail_logs():
-    """Tails the log file, robustly handling seek and file state."""
-    print(f"Tailing log file: {LOG_FILE_PATH}")
+    """Tails the log file continuously and prints detected lines."""
+    print(f"Tailing log file: {LOG_FILE_PATH}", flush=True)
+
     while True:
         try:
             with open(LOG_FILE_PATH, 'r') as f:
-                try:
-                    f.seek(0, io.SEEK_END)
-                except io.UnsupportedOperation:
-                    print("Note: Log stream is unseekable, starting read from current position.", file=sys.stderr)
-                    pass
+                print("[DEBUG] Opened log file successfully.", flush=True)
+                f.seek(0, io.SEEK_END)
 
                 while True:
                     line = f.readline()
                     if not line:
-                        time.sleep(0.1)
+                        time.sleep(1)
+                        # 👇 Reopen file every 10 seconds to handle Docker log rotation or buffering
+                        if int(time.time()) % 10 == 0:
+                            f.close()
+                            print("[DEBUG] Reopening log file to refresh handle...", flush=True)
+                            break
                         continue
-                    print(f"[DEBUG] New log line detected: {line.strip()}")
+
+                    print(f"[DEBUG] New log line detected: {line.strip()}", flush=True)
                     process_log_line(line)
 
         except FileNotFoundError:
-            print(f"Log file not found at {LOG_FILE_PATH}. Retrying in 5 seconds.")
+            print(f"[WARN] Log file not found at {LOG_FILE_PATH}. Retrying in 5 seconds...", flush=True)
             time.sleep(5)
         except Exception as e:
-            print(f"Fatal file error: {e}. Retrying in 10 seconds.")
+            print(f"[ERROR] Fatal file error: {e}. Retrying in 10 seconds.", flush=True)
             time.sleep(10)
 
 if __name__ == "__main__":
