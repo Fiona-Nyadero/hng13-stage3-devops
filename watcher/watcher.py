@@ -20,7 +20,7 @@ current_pool = INITIAL_POOL
 last_alert_time = 0.0
 
 def post_to_slack(title, message, color="#36a64f"):
-    """Posts a rich message to the configured Slack webhook."""
+    """Posts a rich message to the configured Slack webhook, with debug output."""
     if not SLACK_WEBHOOK_URL:
         print(f"[SLACK-ALERT] {title}: {message}")
         return
@@ -33,10 +33,21 @@ def post_to_slack(title, message, color="#36a64f"):
             "ts": int(time.time())
         }]
     }
+
+    print(f"[DEBUG] Sending Slack alert: {title}")
+    print(f"[DEBUG] Payload: {json.dumps(payload)}")
+
     try:
-        requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=5)
+        response = requests.post(
+            SLACK_WEBHOOK_URL,
+            json=payload,
+            timeout=5
+        )
+        print(f"[DEBUG] Slack response status: {response.status_code}")
+        print(f"[DEBUG] Slack response text: {response.text}")
     except Exception as e:
-        print(f"Error posting to Slack: {e}")
+        print(f"[ERROR] Failed to send Slack alert: {e}")
+
 
 def check_cooldown():
     """Returns True if cooldown is active, False otherwise."""
