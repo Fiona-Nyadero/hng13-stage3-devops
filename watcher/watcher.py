@@ -7,7 +7,7 @@ from collections import deque
 import io
 
 # --- CONFIGURATION FROM ENVIRONMENT ---
-LOG_FILE_PATH = "/var/log/nginx/access.log"
+LOG_FILE_PATH = os.enrivon.get("LOG_FILE_PATH", "/app/logs/access.log")
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL")
 ERROR_RATE_THRESHOLD = float(os.environ.get("ERROR_RATE_THRESHOLD", 2)) / 100.0
 WINDOW_SIZE = int(os.environ.get("WINDOW_SIZE", 200))
