@@ -42,8 +42,7 @@ services:
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template:ro
       - ./init-nginx.sh:/docker-entrypoint.d/init-nginx.sh:ro
-      - nginx_logs:/var/log/nginx
-      - ./logs:/logs
+      - ./logs:/var/log/nginx    # 👈 mount local ./logs to nginx logs
     environment:
       ACTIVE_POOL: ${ACTIVE_POOL}
       PORT: ${PORT}
@@ -61,8 +60,8 @@ services:
       ERROR_RATE_THRESHOLD: ${ERROR_RATE_THRESHOLD}
       WINDOW_SIZE: ${WINDOW_SIZE}
       ALERT_COOLDOWN_SEC: ${ALERT_COOLDOWN_SEC}
+      LOG_FILE_PATH: /var/log/nginx/access.log
     volumes:
-      - nginx_logs:/app/logs:ro
-      - ./logs:/logs
+      - ./logs:/var/log/nginx:ro
     depends_on:
       - nginx
