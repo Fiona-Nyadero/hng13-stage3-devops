@@ -15,8 +15,12 @@ else
     exit 1
 fi
 
+export ACTIVE_POOL
+export RELEASE_ID=${RELEASE_ID:-"unknown-release"}
+export PORT
+
 # 2. Substitute Variables into the Template
-envsubst "\$UPSTREAM_BLUE_ROLE \$UPSTREAM_GREEN_ROLE \$PORT" < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf
+envsubst "\$UPSTREAM_BLUE_ROLE \$UPSTREAM_GREEN_ROLE \$PORT \$ACTIVE_POOL \$RELEASE_ID" < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf
 
 echo "Nginx configuration generated successfully."
 

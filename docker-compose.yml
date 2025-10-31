@@ -42,9 +42,10 @@ services:
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template:ro
       - ./init-nginx.sh:/docker-entrypoint.d/init-nginx.sh:ro
-      - ./logs:/var/log/nginx    # 👈 mount local ./logs to nginx logs
+      - ./logs:/var/log/nginx
     environment:
       ACTIVE_POOL: ${ACTIVE_POOL}
+      RELEASE_ID: ${RELEASE_ID_BLUE}
       PORT: ${PORT}
     depends_on:
       - app_blue
