@@ -40,8 +40,8 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./nginx/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template:ro
-      - ./init-nginx.sh:/docker-entrypoint.d/init-nginx.sh:ro
+      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+      - ./init-nginx.sh:/init-nginx.sh:ro
       - ./logs:/var/log/nginx
     environment:
       ACTIVE_POOL: ${ACTIVE_POOL}
@@ -50,7 +50,7 @@ services:
     depends_on:
       - app_blue
       - app_green
-    entrypoint: /docker-entrypoint.d/init-nginx.sh
+    command: ["/bin/sh", "/init-nginx.sh"]
   
   alert_watcher:
     build: ./watcher

@@ -16,7 +16,8 @@ else
 fi
 
 # 2. Substitute Variables into the Template
-envsubst "\$UPSTREAM_BLUE_ROLE \$UPSTREAM_GREEN_ROLE \$PORT \$ACTIVE_POOL \$RELEASE_ID" < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf
+envsubst "\$UPSTREAM_BLUE_ROLE \$UPSTREAM_GREEN_ROLE \$PORT \$ACTIVE_POOL \$RELEASE_ID" \
+  < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf
 
 echo "Nginx configuration generated successfully."
 
