@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # 1. Determine the Primary/Backup Roles
 if [ "$ACTIVE_POOL" = "blue" ]; then
