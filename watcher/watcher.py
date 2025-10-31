@@ -106,7 +106,6 @@ def process_log_line(line):
 def tail_logs():
     """Tails the log file, robustly handling seek and file state."""
     print(f"Tailing log file: {LOG_FILE_PATH}")
-
     while True:
         try:
             with open(LOG_FILE_PATH, 'r') as f:
@@ -121,7 +120,7 @@ def tail_logs():
                     if not line:
                         time.sleep(0.1)
                         continue
-
+                    print(f"[DEBUG] New log line detected: {line.strip()}")
                     process_log_line(line)
 
         except FileNotFoundError:
