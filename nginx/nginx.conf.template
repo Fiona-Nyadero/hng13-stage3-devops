@@ -1,4 +1,4 @@
-log_format json_log escape=json '{'
+log_format json escape=json '{'
     '"time": "$time_iso8601",'
     '"remote_addr": "$remote_addr",'
     '"request_method": "$request_method",'
