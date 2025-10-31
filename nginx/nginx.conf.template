@@ -33,7 +33,7 @@ server {
     location / {
         proxy_pass http://node_backend;
 
-        access_log /var/log/nginx/access.log json_log;
+        access_log /var/log/nginx/access.log json;
         
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
