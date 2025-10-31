@@ -43,6 +43,7 @@ services:
       - ./nginx/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template:ro
       - ./init-nginx.sh:/docker-entrypoint.d/init-nginx.sh:ro
       - nginx_logs:/var/log/nginx
+      - ./logs:/logs
     environment:
       ACTIVE_POOL: ${ACTIVE_POOL}
       PORT: ${PORT}
@@ -62,5 +63,6 @@ services:
       ALERT_COOLDOWN_SEC: ${ALERT_COOLDOWN_SEC}
     volumes:
       - nginx_logs:/app/logs:ro
+      - ./logs:/logs
     depends_on:
       - nginx
