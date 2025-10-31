@@ -34,7 +34,7 @@ server {
         proxy_pass http://node_backend;
 
         proxy_set_header X-App-Pool $ACTIVE_POOL;
-        proxy_set_header X-Release-Id $RELEASE_ID;
+        proxy_set_header X-Release-Id hng-release-1.0-$ACTIVE_POOL;
 
         access_log /var/log/nginx/access.log json;
         
